@@ -16,14 +16,16 @@ class TestGetBaseballTeams:
     @pytest.mark.unit
     @patch('ncaa_stats_py.baseball._get_webpage')
     @patch('ncaa_stats_py.baseball._get_schools')
+    @patch('ncaa_stats_py.baseball.mkdir')
     @patch('ncaa_stats_py.baseball.exists')
     @patch('ncaa_stats_py.baseball.pd.read_csv')
-    def test_get_baseball_teams_returns_dataframe(self, mock_read_csv, mock_exists, mock_get_schools, mock_webpage):
+    def test_get_baseball_teams_returns_dataframe(self, mock_read_csv, mock_exists, mock_mkdir, mock_get_schools, mock_webpage):
         """Test that get_baseball_teams returns a pandas DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_teams
 
         # Mock that cache doesn't exist, forcing fresh fetch
         mock_exists.return_value = False
+        mock_mkdir.return_value = None  # mkdir should not raise
 
         # Mock _get_schools to return a simple DataFrame
         mock_get_schools.return_value = pd.DataFrame({
@@ -31,11 +33,25 @@ class TestGetBaseballTeams:
             'school_name': ['Test University', 'Sample College']
         })
 
-        # Mock web response with complete HTML structure including team list
-        mock_html = '''
+        # Mock web response needs to handle multiple calls:
+        # 1. First call to get ranking periods
+        # 2. Second call to get teams data
+
+        ranking_html = '''
         <html>
             <body>
-                <table>
+                <select name="rp" id="rp">
+                    <option value="1">Week 1</option>
+                    <option value="2">Week 2</option>
+                </select>
+            </body>
+        </html>
+        '''
+
+        teams_html = '''
+        <html>
+            <body>
+                <table id="stat_grid">
                     <tbody>
                         <tr class="odd">
                             <td><a href="/teams/100">Test University</a></td>
@@ -50,7 +66,12 @@ class TestGetBaseballTeams:
             </body>
         </html>
         '''
-        mock_webpage.return_value = Mock(text=mock_html, status=200)
+
+        # Mock multiple webpage calls
+        mock_webpage.side_effect = [
+            Mock(text=ranking_html, status=200),
+            Mock(text=teams_html, status=200)
+        ]
 
         # Call the function
         result = get_baseball_teams(season=2024, level="I")
@@ -61,13 +82,15 @@ class TestGetBaseballTeams:
     @pytest.mark.unit
     @patch('ncaa_stats_py.baseball._get_webpage')
     @patch('ncaa_stats_py.baseball._get_schools')
+    @patch('ncaa_stats_py.baseball.mkdir')
     @patch('ncaa_stats_py.baseball.exists')
-    def test_get_baseball_teams_invalid_level_int(self, mock_exists, mock_get_schools, mock_webpage):
+    def test_get_baseball_teams_invalid_level_int(self, mock_exists, mock_mkdir, mock_get_schools, mock_webpage):
         """Test that invalid NCAA level (integer) raises ValueError or returns empty"""
         from ncaa_stats_py.baseball import get_baseball_teams
 
         # Mock cache doesn't exist
         mock_exists.return_value = False
+        mock_mkdir.return_value = None  # mkdir should not raise
 
         # Mock _get_schools
         mock_get_schools.return_value = pd.DataFrame({
@@ -113,16 +136,38 @@ class TestGetBaseballPlayerSeasonStats:
     """Test baseball player season statistics functions"""
 
     @pytest.mark.unit
+    @patch('ncaa_stats_py.baseball.load_baseball_teams')
+    @patch('ncaa_stats_py.baseball.mkdir')
+    @patch('ncaa_stats_py.baseball.exists')
     @patch('ncaa_stats_py.baseball._get_webpage')
-    def test_get_batting_stats_returns_dataframe(self, mock_webpage):
+    def test_get_batting_stats_returns_dataframe(self, mock_webpage, mock_exists, mock_mkdir, mock_load_teams):
         """Test that get_baseball_player_season_batting_stats returns DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_player_season_batting_stats
+
+        # Mock directory operations
+        mock_exists.return_value = False  # Force fresh fetch
+        mock_mkdir.return_value = None
+
+        # Mock load_baseball_teams to return team info
+        mock_load_teams.return_value = pd.DataFrame({
+            'team_id': [100],
+            'school_id': [50],
+            'school_name': ['Test University'],
+            'ncaa_division': [1],
+            'ncaa_division_formatted': ['I'],
+            'team_conference_name': ['Test Conference'],
+            'season': [2024],
+            'season_name': ['2023-24']
+        })
 
         # Mock batting stats page with more complete structure
         batting_html = """
         <html>
         <body>
-            <table id="stat_grid">
+            <select id="year_list">
+                <option selected="selected">2023-24</option>
+            </select>
+            <table id="stat_grid" class="small_font dataTable table-bordered">
                 <thead>
                     <tr>
                         <th>Player</th>
@@ -137,8 +182,9 @@ class TestGetBaseballPlayerSeasonStats:
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><a href="/players/1001">John Doe</a></td>
+                    <tr class="text">
+                        <td>1</td>
+                        <td data-order="Doe,John"><a href="/players/1001">John Doe</a></td>
                         <td>Jr</td>
                         <td>OF</td>
                         <td>10</td>
@@ -148,8 +194,9 @@ class TestGetBaseballPlayerSeasonStats:
                         <td>5</td>
                         <td>20</td>
                     </tr>
-                    <tr>
-                        <td><a href="/players/1002">Jane Smith</a></td>
+                    <tr class="text">
+                        <td>2</td>
+                        <td data-order="Smith,Jane"><a href="/players/1002">Jane Smith</a></td>
                         <td>So</td>
                         <td>1B</td>
                         <td>12</td>
@@ -177,15 +224,40 @@ class TestGetBaseballTeamSchedule:
     """Test the get_baseball_team_schedule function"""
 
     @pytest.mark.unit
+    @patch('ncaa_stats_py.baseball.load_baseball_teams')
+    @patch('ncaa_stats_py.baseball.mkdir')
+    @patch('ncaa_stats_py.baseball.exists')
     @patch('ncaa_stats_py.baseball._get_webpage')
-    def test_get_schedule_returns_dataframe(self, mock_webpage):
+    def test_get_schedule_returns_dataframe(self, mock_webpage, mock_exists, mock_mkdir, mock_load_teams):
         """Test that get_baseball_team_schedule returns a DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_team_schedule
+
+        # Mock directory operations
+        mock_exists.return_value = False  # Force fresh fetch
+        mock_mkdir.return_value = None
+
+        # Mock load_baseball_teams to return team info
+        mock_load_teams.return_value = pd.DataFrame({
+            'team_id': [100],
+            'school_id': [50],
+            'school_name': ['Test University'],
+            'ncaa_division': [1],
+            'ncaa_division_formatted': ['I'],
+            'team_conference_name': ['Test Conference'],
+            'season': [2024],
+            'season_name': ['2023-24']
+        })
 
         # Mock schedule page with more complete structure
         schedule_html = """
         <html>
         <body>
+            <div class="card">
+                <img alt="Test University" src="/logo.png" />
+            </div>
+            <select id="year_list">
+                <option selected="selected">2023-24</option>
+            </select>
             <table class="mytable">
                 <thead>
                     <tr>
@@ -247,16 +319,35 @@ class TestGetBaseballTeamRoster:
     """Test the get_baseball_team_roster function"""
 
     @pytest.mark.unit
+    @patch('ncaa_stats_py.baseball.load_baseball_teams')
     @patch('ncaa_stats_py.baseball._get_webpage')
-    def test_get_roster_returns_dataframe(self, mock_webpage):
+    def test_get_roster_returns_dataframe(self, mock_webpage, mock_load_teams):
         """Test that get_baseball_team_roster returns a DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_team_roster
+
+        # Mock load_baseball_teams to return team info
+        mock_load_teams.return_value = pd.DataFrame({
+            'team_id': [100],
+            'school_id': [50],
+            'school_name': ['Test University'],
+            'ncaa_division': [1],
+            'ncaa_division_formatted': ['I'],
+            'team_conference_name': ['Test Conference'],
+            'season': [2024],
+            'season_name': ['2023-24']
+        })
 
         # Mock roster page with more complete structure
         roster_html = """
         <html>
         <body>
-            <table id="roster_grid" class="mytable">
+            <div class="card">
+                <img alt="Test University" src="/logo.png" />
+            </div>
+            <select id="year_list">
+                <option selected="selected">2023-24</option>
+            </select>
+            <table class="dataTable small_font">
                 <thead>
                     <tr>
                         <th>Jersey</th>
