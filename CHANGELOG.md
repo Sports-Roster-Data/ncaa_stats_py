@@ -1,5 +1,30 @@
 # `ncaa_stats_py` Changelog
 
+## 0.0.13: The "Documentation & Package Export" update
+- Added Football, Soccer, Volleyball, and Lacrosse to main package exports in `__init__.py`, making all 9 sports directly accessible to users.
+- **Soccer Module Refactoring** (Derek Willis):
+  - Major rewrite and simplification of `ncaa_stats_py.soccer` module, reducing code complexity.
+  - Implemented `ncaa_stats_py.soccer.get_match_stats_from_box_score()`, to extract match statistics from box score data.
+  - Implemented `ncaa_stats_py.soccer.get_soccer_match_stats()`, to retrieve match-level statistics for soccer games.
+  - Implemented `ncaa_stats_py.soccer.get_soccer_team_stats()`, to get team-level statistics for soccer teams.
+  - Improved error handling and caching mechanisms throughout the soccer module.
+- **Volleyball Enhancements**:
+  - Implemented `VolleyballConfig` class for configurable default settings.
+  - Implemented `ncaa_stats_py.volleyball.configure_volleyball()`, to allow users to set default preferences (default sport, cache duration, etc.).
+  - Implemented `ncaa_stats_py.volleyball.summarize_volleyball_season()`, to generate season summary statistics.
+  - Implemented `ncaa_stats_py.volleyball.get_womens_volleyball_season_data()`, convenience function for women's volleyball season data.
+  - Implemented `ncaa_stats_py.volleyball.get_mens_volleyball_season_data()`, convenience function for men's volleyball season data.
+  - Implemented `ncaa_stats_py.volleyball.get_volleyball_team_stats()`, to retrieve team-level statistics.
+  - Implemented gender-specific team functions: `get_womens_volleyball_teams()` and `get_mens_volleyball_teams()`.
+  - Added input validation helper `_validate_volleyball_inputs()` for consistent parameter checking.
+- **Lacrosse Updates**:
+  - Added support for Men's Lacrosse 2026 season with updated stat IDs:
+    - Stat ID 15808 for goalkeepers
+    - Stat ID 15807 for non-goalkeepers
+  - Implemented `ncaa_stats_py.lacrosse.get_lacrosse_team_stats()`, to retrieve team-level statistics for lacrosse.
+- Updated documentation to reflect all available sports and their features.
+- Set the package version to `0.0.13`.
+
 ## 0.0.12: The "Football" update, Part II
 - Fixed multiple team abbreviations in the `fb_team_abvs.csv` file to better parse play-by-play data.
 - Fixed multiple, previously unhandled game situations in `ncaa_stats_py.football.get_parsed_football_pbp()` that would cause the function to be unable to parse a game.

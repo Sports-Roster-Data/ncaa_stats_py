@@ -31,22 +31,37 @@ Alternatively, `ncaa_stats_py` can be installed from
 this GitHub repository with the following command through pip:
 
 ```bash
-pip install git+https://github.com/dwillis/ncaa_stats_py
+pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
 
 OR
 
 ```bash
-python -m pip install git+https://github.com/dwillis/ncaa_stats_py
+python -m pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
 
 OR
 
 ```bash
-python3 -m pip install git+https://github.com/dwillis/ncaa_stats_py
+python3 -m pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
+
+## Supported Sports
+
+`ncaa_stats_py` provides comprehensive data access for 9 NCAA sports:
+
+- **Baseball** (MBA)
+- **Basketball** (MBB - Men's Basketball, WBB - Women's Basketball)
+- **Field Hockey** (WFH - Women's Field Hockey)
+- **Football** (American Football)
+- **Hockey** (MIH - Men's Ice Hockey, WIH - Women's Ice Hockey)
+- **Lacrosse** (MLA - Men's Lacrosse, WLA - Women's Lacrosse)
+- **Soccer** (MSO - Men's Soccer, WSO - Women's Soccer)
+- **Softball** (Women's Softball)
+- **Volleyball** (MVB - Men's Volleyball, WVB - Women's Volleyball)
 
 ## How to Use
+
 `ncaa_stats_py` separates itself by doing the following
 things when attempting to get data:
 1. Automatically caching any data that is already parsed
@@ -56,6 +71,8 @@ things when attempting to get data:
     (you do not *need* to add sleep timers if you're looping through,
     and calling functions in this python package).
 3. Automatically refreshing any cached data if the data hasn't been refreshed in a while.
+
+### Baseball Example
 
 For example, the following code will work as-is,
     and in the second loop, the code will load in the teams
@@ -122,6 +139,67 @@ print(f"Elapsed time: {time_elapsed:03f} seconds.\n\n")
 
 ```
 
+### Basketball Example
+
+Basketball supports both men's and women's divisions:
+
+```python
+from ncaa_stats_py.basketball import get_basketball_teams, get_basketball_player_season_stats
+
+# Get women's basketball teams for 2024
+womens_teams_df = get_basketball_teams(season=2024, level="I", get_womens_basketball_data=True)
+print(womens_teams_df.head())
+
+# Get men's basketball teams for 2024
+mens_teams_df = get_basketball_teams(season=2024, level="I", get_womens_basketball_data=False)
+print(mens_teams_df.head())
+```
+
+### Soccer Example
+
+Soccer also supports both men's and women's divisions with additional match-level statistics:
+
+```python
+from ncaa_stats_py.soccer import get_soccer_teams, get_soccer_match_stats
+
+# Get women's soccer teams
+womens_soccer_df = get_soccer_teams(season=2024, level="I", get_womens_soccer_data=True)
+print(womens_soccer_df.head())
+
+# Get match statistics for a specific game
+match_stats_df = get_soccer_match_stats(game_id=12345)
+print(match_stats_df)
+```
+
+### Volleyball Example
+
+Volleyball includes a configuration system for setting default preferences:
+
+```python
+from ncaa_stats_py.volleyball import configure_volleyball, get_volleyball_teams
+
+# Configure volleyball to default to women's volleyball
+configure_volleyball(default_sport="women")
+
+# Get volleyball teams for 2024
+teams_df = get_volleyball_teams(season=2024, level="I")
+print(teams_df.head())
+```
+
+### Football Example
+
+```python
+from ncaa_stats_py.football import get_football_teams, get_football_team_schedule
+
+# Get Division I football teams for 2024
+teams_df = get_football_teams(season=2024, level="I")
+print(teams_df.head())
+
+# Get schedule for a specific team
+schedule_df = get_football_team_schedule(team_id=123)
+print(schedule_df)
+```
+
 # Dependencies
 
 `ncaa_stats_py` is dependent on the following python packages:
@@ -134,8 +212,8 @@ print(f"Elapsed time: {time_elapsed:03f} seconds.\n\n")
 
 # License
 
-This package is licensed under the MIT license. You can view the package's license [here](https://github.com/armstjc/ncaa_stats_py/blob/main/LICENSE).
+This package is licensed under the MIT license. You can view the package's license [here](https://github.com/SportsRosterData/ncaa_stats_py/blob/main/LICENSE).
 
 # Documentation
 
-For more information about this package, its functions, and ways you can use said functions can be found at [https://armstjc.github.io/ncaa_stats_py/](https://armstjc.github.io/ncaa_stats_py/).
+For more information about this package, its functions, and ways you can use said functions can be found at [https://SportsRosterData.github.io/ncaa_stats_py/](https://SportsRosterData.github.io/ncaa_stats_py/).

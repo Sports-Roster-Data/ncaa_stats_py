@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ncaa_stats_py"
-version = "0.0.12"
+version = "0.0.13"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -40,7 +40,7 @@ dependencies = [
     "pytz>=2025.1",
     "beautifulsoup4>=4.12.3",
     "python-dateutil>=2.9.0",
-    "playwright>=1.54.0"
+    "playwright>=1.54.0",
 ]
 
 [project.urls]
@@ -48,3 +48,13 @@ homepage = "https://github.com/dwillis/ncaa_stats_py"
 documentation = "https://github.com/dwillis/ncaa_stats_py"
 repository = "https://github.com/dwillis/ncaa_stats_py.git"
 changelog = "https://github.com/dwillis/ncaa_stats_py/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "pdoc>=16.0.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.23.0",
+    "responses>=0.24.0",
+]

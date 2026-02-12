@@ -24,19 +24,26 @@ you may need to specify `python3` when installing, as shown below:
 python3 -m pip install ncaa_stats_py
 ```
 
-Alternatively, `cfbd-json-py` can be installed from
+Alternatively, `ncaa_stats_py` can be installed from
 this GitHub repository with the following command through pip:
 ```
-pip install git+https://github.com/armstjc/ncaa_stats_py
+pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
 OR
 ```
-python -m pip install git+https://github.com/armstjc/ncaa_stats_py
+python -m pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
 OR
 ```
-python3 -m pip install git+https://github.com/armstjc/ncaa_stats_py
+python3 -m pip install git+https://github.com/Sports-Roster-Data/ncaa_stats_py
 ```
+
+## Supported Sports
+
+`ncaa_stats_py` provides comprehensive data access for 9 NCAA sports:
+- Baseball, Basketball (Men's/Women's), Field Hockey, Football,
+- Hockey (Men's/Women's), Lacrosse (Men's/Women's), Soccer (Men's/Women's),
+- Softball, and Volleyball (Men's/Women's)
 
 ## How to Use
 `ncaa_stats_py` separates itself by doing the following
@@ -135,7 +142,7 @@ print(f"Elapsed time: {time_elapsed:03f} seconds.\n\n")
 
 This package is licensed under the MIT license.
 You can view the package's license
-[here](https://github.com/armstjc/ncaa_stats_py/blob/main/LICENSE).
+[here](https://github.com/Sports-Roster-Data/ncaa_stats_py/blob/main/LICENSE).
 
 
 """
@@ -143,5 +150,9 @@ You can view the package's license
 from ncaa_stats_py.baseball import *  # noqa: F403
 from ncaa_stats_py.basketball import *  # noqa: F403
 from ncaa_stats_py.field_hockey import *  # noqa: F403
+from ncaa_stats_py.football import *  # noqa: F403
 from ncaa_stats_py.hockey import *  # noqa: F403
+from ncaa_stats_py.lacrosse import *  # noqa: F403
+from ncaa_stats_py.soccer import *  # noqa: F403
 from ncaa_stats_py.softball import *  # noqa: F403
+from ncaa_stats_py.volleyball import *  # noqa: F403
