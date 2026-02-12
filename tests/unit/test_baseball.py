@@ -23,8 +23,12 @@ class TestGetBaseballTeams:
         """Test that get_baseball_teams returns a pandas DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_teams
 
-        # Mock that cache doesn't exist, forcing fresh fetch
-        mock_exists.return_value = False
+        # Mock exists to return True for directories, False for cache files
+        def exists_side_effect(path):
+            # Return True for directories, False for .csv files
+            return not str(path).endswith('.csv')
+
+        mock_exists.side_effect = exists_side_effect
         mock_mkdir.return_value = None  # mkdir should not raise
 
         # Mock _get_schools to return a simple DataFrame
@@ -144,8 +148,12 @@ class TestGetBaseballPlayerSeasonStats:
         """Test that get_baseball_player_season_batting_stats returns DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_player_season_batting_stats
 
-        # Mock directory operations
-        mock_exists.return_value = False  # Force fresh fetch
+        # Mock exists to return True for directories, False for cache files
+        def exists_side_effect(path):
+            # Return True for directories, False for .csv files
+            return not str(path).endswith('.csv')
+
+        mock_exists.side_effect = exists_side_effect
         mock_mkdir.return_value = None
 
         # Mock load_baseball_teams to return team info
@@ -233,8 +241,12 @@ class TestGetBaseballTeamSchedule:
         """Test that get_baseball_team_schedule returns a DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_team_schedule
 
-        # Mock directory operations
-        mock_exists.return_value = False  # Force fresh fetch
+        # Mock exists to return True for directories, False for cache files
+        def exists_side_effect(path):
+            # Return True for directories, False for .csv files
+            return not str(path).endswith('.csv')
+
+        mock_exists.side_effect = exists_side_effect
         mock_mkdir.return_value = None
 
         # Mock load_baseball_teams to return team info
