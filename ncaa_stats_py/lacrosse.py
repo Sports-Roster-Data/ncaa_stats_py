@@ -2216,9 +2216,10 @@ def get_lacrosse_player_season_stats(
     team_df = team_df[team_df["team_id"] == team_id]
     
     if team_df.empty:
+        gender = "women's" if get_womens_lacrosse_data else "men's"
         raise ValueError(
             f"Team ID {team_id} not found in {season} season "
-            f"level {level} {'women\'s' if get_womens_lacrosse_data else 'men\'s'} lacrosse"
+            f"level {level} {gender} lacrosse"
         )
 
     # Extract team information
