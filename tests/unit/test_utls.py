@@ -551,14 +551,15 @@ class TestGetSchools:
     @patch('ncaa_stats_py.utls._get_webpage')
     @patch('ncaa_stats_py.utls.exists')
     @patch('ncaa_stats_py.utls.getmtime')
-    def test_get_schools_cache_hit_fresh(self, mock_getmtime, mock_exists, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_cache_hit_fresh(self, mock_expanduser, mock_getmtime, mock_exists, mock_webpage, tmp_path, monkeypatch):
         """Test that fresh cache is loaded without making web request"""
         from ncaa_stats_py.utls import _get_schools
         from datetime import datetime
         import time
 
-        # Setup mock home directory
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
         cache_dir = tmp_path / ".ncaa_stats_py"
         cache_dir.mkdir()
         cache_file = cache_dir / "schools.csv"
@@ -588,13 +589,14 @@ class TestGetSchools:
     @patch('ncaa_stats_py.utls._get_webpage')
     @patch('ncaa_stats_py.utls.exists')
     @patch('ncaa_stats_py.utls.getmtime')
-    def test_get_schools_cache_expired(self, mock_getmtime, mock_exists, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_cache_expired(self, mock_expanduser, mock_getmtime, mock_exists, mock_webpage, tmp_path, monkeypatch):
         """Test that expired cache triggers web request"""
         from ncaa_stats_py.utls import _get_schools
         import time
 
-        # Setup mock home directory
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
         cache_dir = tmp_path / ".ncaa_stats_py"
         cache_dir.mkdir()
         cache_file = cache_dir / "schools.csv"
@@ -638,12 +640,13 @@ class TestGetSchools:
 
     @pytest.mark.unit
     @patch('ncaa_stats_py.utls._get_webpage')
-    def test_get_schools_no_cache(self, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_no_cache(self, mock_expanduser, mock_webpage, tmp_path, monkeypatch):
         """Test fetching schools when no cache exists"""
         from ncaa_stats_py.utls import _get_schools
 
-        # Setup mock home directory
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
 
         # Mock web response
         mock_html = """
@@ -762,12 +765,13 @@ class TestGetSchools:
 
     @pytest.mark.unit
     @patch('ncaa_stats_py.utls._get_webpage')
-    def test_get_schools_missing_select_element(self, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_missing_select_element(self, mock_expanduser, mock_webpage, tmp_path, monkeypatch):
         """Test error handling when school select element is missing"""
         from ncaa_stats_py.utls import _get_schools
 
-        # Setup
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
 
         # Mock web response with missing select element
         mock_html = """
@@ -786,12 +790,13 @@ class TestGetSchools:
 
     @pytest.mark.unit
     @patch('ncaa_stats_py.utls._get_webpage')
-    def test_get_schools_creates_cache_directory(self, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_creates_cache_directory(self, mock_expanduser, mock_webpage, tmp_path, monkeypatch):
         """Test that cache directory is created if it doesn't exist"""
         from ncaa_stats_py.utls import _get_schools
 
-        # Setup mock home directory (no cache dir exists)
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory (no cache dir exists) - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
 
         # Mock web response
         mock_html = """
@@ -816,12 +821,13 @@ class TestGetSchools:
 
     @pytest.mark.unit
     @patch('ncaa_stats_py.utls._get_webpage')
-    def test_get_schools_saves_to_cache(self, mock_webpage, tmp_path, monkeypatch):
+    @patch('ncaa_stats_py.utls.expanduser')
+    def test_get_schools_saves_to_cache(self, mock_expanduser, mock_webpage, tmp_path, monkeypatch):
         """Test that fetched schools are saved to cache file"""
         from ncaa_stats_py.utls import _get_schools
 
-        # Setup
-        monkeypatch.setenv("HOME", str(tmp_path))
+        # Setup mock home directory - mock expanduser to return tmp_path
+        mock_expanduser.return_value = str(tmp_path)
 
         # Mock web response
         mock_html = """
