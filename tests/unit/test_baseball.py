@@ -237,12 +237,13 @@ class TestGetBaseballTeamSchedule:
     """Test the get_baseball_team_schedule function"""
 
     @pytest.mark.unit
+    @patch('ncaa_stats_py.baseball._get_schools')
     @patch('ncaa_stats_py.baseball.load_baseball_teams')
     @patch('ncaa_stats_py.baseball.mkdir')
     @patch('ncaa_stats_py.baseball.exists')
     @patch('ncaa_stats_py.baseball._get_webpage')
     @patch('pandas.DataFrame.to_csv')
-    def test_get_schedule_returns_dataframe(self, mock_to_csv, mock_webpage, mock_exists, mock_mkdir, mock_load_teams):
+    def test_get_schedule_returns_dataframe(self, mock_to_csv, mock_webpage, mock_exists, mock_mkdir, mock_load_teams, mock_get_schools):
         """Test that get_baseball_team_schedule returns a DataFrame"""
         from ncaa_stats_py.baseball import get_baseball_team_schedule
 
@@ -254,6 +255,12 @@ class TestGetBaseballTeamSchedule:
         mock_exists.side_effect = exists_side_effect
         mock_mkdir.return_value = None
         mock_to_csv.return_value = None  # Don't actually save files
+
+        # Mock _get_schools to prevent HTTP requests
+        mock_get_schools.return_value = pd.DataFrame({
+            'school_id': [50],
+            'school_name': ['Test University']
+        })
 
         # Mock load_baseball_teams to return team info
         mock_load_teams.return_value = pd.DataFrame({
