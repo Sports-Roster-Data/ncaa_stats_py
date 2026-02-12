@@ -170,13 +170,14 @@ class TestGetBaseballPlayerSeasonStats:
             <table id="stat_grid" class="small_font dataTable table-bordered">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>Player</th>
                         <th>Yr</th>
                         <th>Pos</th>
                         <th>GP</th>
                         <th>BA</th>
-                        <th>OBP</th>
-                        <th>SLG</th>
+                        <th>OBPct</th>
+                        <th>SlgPct</th>
                         <th>HR</th>
                         <th>RBI</th>
                     </tr>
@@ -258,30 +259,33 @@ class TestGetBaseballTeamSchedule:
             <select id="year_list">
                 <option selected="selected">2023-24</option>
             </select>
-            <table class="mytable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Opponent</th>
-                        <th>Result</th>
-                        <th>W-L</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>02/15/2024</td>
-                        <td><a href="/teams/101">Sample College</a></td>
-                        <td><a href="/contests/12345">W 5-3</a></td>
-                        <td>1-0</td>
-                    </tr>
-                    <tr>
-                        <td>02/16/2024</td>
-                        <td><a href="/teams/102">Example State</a></td>
-                        <td><a href="/contests/12346">L 2-4</a></td>
-                        <td>1-1</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="col p-0">
+                <div class="card-header">Schedule</div>
+                <table class="mytable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Opponent</th>
+                            <th>Result</th>
+                            <th>W-L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="underline_rows">
+                            <td>02/15/2024</td>
+                            <td><a href="/teams/101">Sample College</a></td>
+                            <td><a href="/contests/12345">W 5-3</a></td>
+                            <td>1-0</td>
+                        </tr>
+                        <tr class="underline_rows">
+                            <td>02/16/2024</td>
+                            <td><a href="/teams/102">Example State</a></td>
+                            <td><a href="/contests/12346">L 2-4</a></td>
+                            <td>1-1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </body>
         </html>
         """
@@ -350,12 +354,11 @@ class TestGetBaseballTeamRoster:
             <table class="dataTable small_font">
                 <thead>
                     <tr>
-                        <th>Jersey</th>
+                        <th>#</th>
                         <th>Name</th>
                         <th>Position</th>
-                        <th>Year</th>
+                        <th>Class</th>
                         <th>Height</th>
-                        <th>Weight</th>
                         <th>Hometown</th>
                     </tr>
                 </thead>
@@ -366,7 +369,6 @@ class TestGetBaseballTeamRoster:
                         <td>P</td>
                         <td>Jr.</td>
                         <td>6-2</td>
-                        <td>185</td>
                         <td>Test City, ST</td>
                     </tr>
                     <tr class="text">
@@ -375,7 +377,6 @@ class TestGetBaseballTeamRoster:
                         <td>1B</td>
                         <td>So.</td>
                         <td>6-0</td>
-                        <td>175</td>
                         <td>Sample Town, ST</td>
                     </tr>
                 </tbody>
