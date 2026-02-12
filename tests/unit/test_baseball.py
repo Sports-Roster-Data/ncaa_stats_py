@@ -307,7 +307,11 @@ class TestGetBaseballTeamSchedule:
         </body>
         </html>
         """
-        mock_webpage.return_value = Mock(text=schedule_html, status=200)
+        mock_response = Mock()
+        mock_response.text = schedule_html
+        mock_response.status = 200
+        mock_response.status_code = 200
+        mock_webpage.return_value = mock_response
 
         # Call the function
         result = get_baseball_team_schedule(team_id=100)
