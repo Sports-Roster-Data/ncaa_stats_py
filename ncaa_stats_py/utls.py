@@ -548,6 +548,11 @@ def _stat_id_dict() -> dict:
             },
         },
         "mens_lacrosse": {  # MLA
+            2026: {
+                "season": 2026,
+                "goalkeepers": 15808,
+                "non_goalkeepers": 15807
+            },
             2025: {
                 "season": 2025,
                 "goalkeepers": 15650,

@@ -27,23 +27,23 @@ you may need to specify `python3` when installing, as shown below:
 python3 -m pip install ncaa_stats_py
 ```
 
-Alternatively, `cfbd-json-py` can be installed from
+Alternatively, `ncaa_stats_py` can be installed from
 this GitHub repository with the following command through pip:
 
 ```bash
-pip install git+https://github.com/armstjc/ncaa_stats_py
+pip install git+https://github.com/dwillis/ncaa_stats_py
 ```
 
 OR
 
 ```bash
-python -m pip install git+https://github.com/armstjc/ncaa_stats_py
+python -m pip install git+https://github.com/dwillis/ncaa_stats_py
 ```
 
 OR
 
 ```bash
-python3 -m pip install git+https://github.com/armstjc/ncaa_stats_py
+python3 -m pip install git+https://github.com/dwillis/ncaa_stats_py
 ```
 
 ## How to Use
