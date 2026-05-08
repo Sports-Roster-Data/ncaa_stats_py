@@ -26,7 +26,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright, Page, Browser, BrowserContext
+from playwright.sync_api import sync_playwright, Page, Browser, BrowserContext, Error as PlaywrightError
 from playwright.async_api import async_playwright
 import asyncio
 class AsyncWebPageResponse:
@@ -812,7 +812,6 @@ def _get_browser() -> tuple[Browser, BrowserContext]:
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--single-process',
                 '--disable-gpu',
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
@@ -1041,16 +1040,13 @@ def _get_webpage(url: str, timeout: int = 60000, wait_for_selector: Optional[str
                 except Exception as e:
                     logging.warning(f"Selector {wait_for_selector} not found: {e}")
             
-            # Wait for network to be mostly idle (helps with dynamic content)
-            try:
-                page.wait_for_load_state('networkidle', timeout=10000)
-            except Exception as e:
-                logging.warning(f"Network idle timeout: {e}")
-            
-            # Additional wait for JavaScript to execute
-            page.wait_for_timeout(2000)
+            # Wait for JavaScript to execute after domcontentloaded
+            if not page.is_closed():
+                page.wait_for_timeout(2000)
             
             # Get the page content
+            if page.is_closed():
+                raise ConnectionError(f"Page was closed before content could be retrieved: {url}")
             content = page.content()
             logging.info(f"Retrieved {len(content)} characters from {url}")
             
