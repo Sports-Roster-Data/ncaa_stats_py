@@ -781,6 +781,7 @@ def _stat_id_dict() -> dict:
 
 
 # Global browser instance for reuse
+_playwright_instance = None
 _browser_instance: Optional[Browser] = None
 _browser_context: Optional[BrowserContext] = None
 
@@ -796,13 +797,13 @@ class WebPageResponse:
 
 def _get_browser() -> tuple[Browser, BrowserContext]:
     """Get or create a browser instance with proper configuration for NCAA site"""
-    global _browser_instance, _browser_context
-    
+    global _playwright_instance, _browser_instance, _browser_context
+
     if _browser_instance is None or _browser_context is None:
-        playwright = sync_playwright().start()
+        _playwright_instance = sync_playwright().start()
         
         # Launch browser with options to avoid detection
-        _browser_instance = playwright.chromium.launch(
+        _browser_instance = _playwright_instance.chromium.launch(
             headless=True,
             args=[
                 '--no-sandbox',
@@ -883,15 +884,19 @@ def _get_browser() -> tuple[Browser, BrowserContext]:
 
 def _close_browser():
     """Close the global browser instance"""
-    global _browser_instance, _browser_context
-    
+    global _playwright_instance, _browser_instance, _browser_context
+
     if _browser_context:
         _browser_context.close()
         _browser_context = None
-    
+
     if _browser_instance:
         _browser_instance.close()
         _browser_instance = None
+
+    if _playwright_instance:
+        _playwright_instance.stop()
+        _playwright_instance = None
 
 
 def _get_webpage(url: str, timeout: int = 60000, wait_for_selector: Optional[str] = None) -> WebPageResponse:
