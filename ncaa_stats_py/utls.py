@@ -462,6 +462,12 @@ def _stat_id_dict() -> dict:
             },
         },
         "softball": {
+            2026: {
+                "season": 2026,
+                "batting": 15847,
+                "pitching": 15848,
+                "fielding": 15849,
+            },
             2025: {
                 "season": 2025,
                 "batting": 15667,
