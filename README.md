@@ -186,6 +186,43 @@ teams_df = get_volleyball_teams(season=2024, level="I")
 print(teams_df.head())
 ```
 
+### Softball Example: All-Team Season Stats
+
+To get batting season stats for every team in a division as a single DataFrame,
+iterate over teams from `load_softball_teams()` and concatenate.
+The per-team results are cached locally, so subsequent runs are fast.
+
+```python
+import pandas as pd
+from ncaa_stats_py.softball import (
+    load_softball_teams,
+    get_softball_player_season_batting_stats,
+)
+
+# Load all D1 softball teams for 2024
+teams = load_softball_teams()
+teams = teams[(teams["season"] == 2024) & (teams["ncaa_division"] == 1)]
+
+dfs = []
+for team_id in teams["team_id"]:
+    try:
+        df = get_softball_player_season_batting_stats(team_id)
+        dfs.append(df)
+    except Exception:
+        pass
+
+# One row per player across all D1 teams
+all_batting = pd.concat(dfs, ignore_index=True)
+print(all_batting.head())
+
+# Aggregate to one row per team
+team_batting = all_batting.groupby(
+    ["season", "team_id", "school_name"], as_index=False
+)[["batting_AB", "batting_R", "batting_H", "batting_HR",
+   "batting_RBI", "batting_BB", "batting_SO"]].sum()
+print(team_batting.head())
+```
+
 ### Football Example
 
 ```python
