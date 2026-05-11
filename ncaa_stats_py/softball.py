@@ -5006,6 +5006,660 @@ def get_softball_game_team_stats(game_id: int) -> pd.DataFrame:
     return final_df
 
 
+def get_softball_team_game_batting_stats(team_id: int) -> pd.DataFrame:
+    """
+    Given a valid team ID, this function retrieves the batting stats
+    for that team at a game level for the entire season.
+
+    Parameters
+    ----------
+    `team_id` (int, mandatory):
+        Required argument.
+        Specifies the team you want batting stats from.
+        This is separate from a school ID, which identifies the institution.
+        A team ID should be unique to a school, and a season.
+
+    Usage
+    ----------
+    ```python
+
+    from ncaa_stats_py.softball import (
+        get_softball_team_game_batting_stats
+    )
+
+    # Get the team game batting stats for
+    # the 2024 Sacred Heart softball team (D1, ID: 571982).
+    print(
+        "Get the team game batting stats for the " +
+        "2024 Sacred Heart softball team (D1, ID: 571982)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=571982)
+    print(df)
+
+    # Get the team game batting stats for
+    # the 2023 Pitt.-Johnstown softball team (D2, ID: 549649).
+    print(
+        "Get the team game batting stats for the " +
+        "2023 Pitt.-Johnstown softball team (D2, ID: 549649)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=549649)
+    print(df)
+
+    # Get the team game batting stats for
+    # the 2022 Texas-Dallas softball team (D3, ID: 533069).
+    print(
+        "Get the team game batting stats for the " +
+        "2022 Texas-Dallas softball team (D3, ID: 533069)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=533069)
+    print(df)
+
+    # Get the team game batting stats for
+    # the 2021 UTSA softball team (D1, ID: 510536).
+    print(
+        "Get the team game batting stats for the " +
+        "2021 UTSA softball team (D1, ID: 510536)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=510536)
+    print(df)
+
+    # Get the team game batting stats for
+    # the 2020 McKendree softball team (D2, ID: 495629).
+    print(
+        "Get the team game batting stats for the " +
+        "2020 McKendree softball team (D2, ID: 495629)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=495629)
+    print(df)
+
+    # Get the team game batting stats for
+    # the 2019 Dubuque softball team (D3, ID: 472831).
+    print(
+        "Get the team game batting stats for the " +
+        "2019 Dubuque softball team (D3, ID: 472831)."
+    )
+    df = get_softball_team_game_batting_stats(team_id=472831)
+    print(df)
+
+    ```
+
+    Returns
+    ----------
+    A pandas `DataFrame` object with a team's batting game logs
+    in a given season.
+    """
+    sport_id = "WSB"
+    load_from_cache = True
+    stats_df = pd.DataFrame()
+    stats_df_arr = []
+    home_dir = expanduser("~")
+    home_dir = _format_folder_str(home_dir)
+
+    stat_columns = [
+        "season",
+        "sport_id",
+        "game_id",
+        "game_date",
+        "game_date_time",
+        "game_stadium",
+        "team_id",
+        "batting_AB",
+        "batting_R",
+        "batting_H",
+        "batting_2B",
+        "batting_3B",
+        "batting_TB",
+        "batting_HR",
+        "batting_RBI",
+        "batting_BB",
+        "batting_HBP",
+        "batting_SF",
+        "batting_SH",
+        "batting_SO",
+        "batting_OPP_DP",
+        "batting_CS",
+        "batting_PK",
+        "batting_GDP",
+        "batting_SB",
+        "batting_IBB",
+        "batting_KL",
+    ]
+
+    team_df = load_softball_teams()
+    team_df = team_df[team_df["team_id"] == team_id]
+    season = team_df["season"].iloc[0]
+    del team_df
+
+    if exists(f"{home_dir}/.ncaa_stats_py/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/")
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+    ):
+        pass
+    else:
+        mkdir(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+        )
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+        + f"{team_id}_team_game_batting_stats.csv"
+    ):
+        stats_df = pd.read_csv(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+            + f"{team_id}_team_game_batting_stats.csv"
+        )
+        file_mod_datetime = datetime.fromtimestamp(
+            getmtime(
+                f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+                + f"{team_id}_team_game_batting_stats.csv"
+            )
+        )
+        stats_df = stats_df.infer_objects()
+        load_from_cache = True
+    else:
+        file_mod_datetime = datetime.today()
+        load_from_cache = False
+
+    now = datetime.today()
+    age = now - file_mod_datetime
+
+    if (
+        age.days > 1 and
+        season >= now.year and
+        now.month <= 7
+    ):
+        load_from_cache = False
+
+    if load_from_cache is True:
+        return stats_df
+
+    schedule_df = get_softball_team_schedule(team_id)
+    game_ids = schedule_df["game_id"].dropna().unique().tolist()
+    game_ids = [int(g) for g in game_ids]
+
+    for game_id in tqdm(game_ids):
+        try:
+            game_stats = get_softball_game_team_stats(game_id=game_id)
+            team_stats = game_stats[game_stats["team_id"] == team_id].copy()
+            if len(team_stats) > 0:
+                stats_df_arr.append(team_stats)
+        except Exception as e:
+            logging.warning(
+                f"Could not retrieve team stats for game {game_id}. "
+                + f"Full exception `{e}`."
+            )
+
+    if len(stats_df_arr) == 0:
+        logging.warning(
+            f"Could not find any team game batting stats for team {team_id}."
+        )
+        return pd.DataFrame(columns=stat_columns)
+
+    stats_df = pd.concat(stats_df_arr, ignore_index=True)
+    stats_df["sport_id"] = sport_id
+
+    batting_cols = [c for c in stat_columns if c in stats_df.columns]
+    stats_df = stats_df.reindex(columns=stat_columns)
+
+    stats_df.to_csv(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/batting/"
+        + f"{team_id}_team_game_batting_stats.csv",
+        index=False,
+    )
+    return stats_df
+
+
+def get_softball_team_game_pitching_stats(team_id: int) -> pd.DataFrame:
+    """
+    Given a valid team ID, this function retrieves the pitching stats
+    for that team at a game level for the entire season.
+
+    Parameters
+    ----------
+    `team_id` (int, mandatory):
+        Required argument.
+        Specifies the team you want pitching stats from.
+        This is separate from a school ID, which identifies the institution.
+        A team ID should be unique to a school, and a season.
+
+    Usage
+    ----------
+    ```python
+
+    from ncaa_stats_py.softball import (
+        get_softball_team_game_pitching_stats
+    )
+
+    # Get the team game pitching stats for
+    # the 2024 Sacred Heart softball team (D1, ID: 571982).
+    print(
+        "Get the team game pitching stats for the " +
+        "2024 Sacred Heart softball team (D1, ID: 571982)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=571982)
+    print(df)
+
+    # Get the team game pitching stats for
+    # the 2023 Pitt.-Johnstown softball team (D2, ID: 549649).
+    print(
+        "Get the team game pitching stats for the " +
+        "2023 Pitt.-Johnstown softball team (D2, ID: 549649)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=549649)
+    print(df)
+
+    # Get the team game pitching stats for
+    # the 2022 Texas-Dallas softball team (D3, ID: 533069).
+    print(
+        "Get the team game pitching stats for the " +
+        "2022 Texas-Dallas softball team (D3, ID: 533069)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=533069)
+    print(df)
+
+    # Get the team game pitching stats for
+    # the 2021 UTSA softball team (D1, ID: 510536).
+    print(
+        "Get the team game pitching stats for the " +
+        "2021 UTSA softball team (D1, ID: 510536)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=510536)
+    print(df)
+
+    # Get the team game pitching stats for
+    # the 2020 McKendree softball team (D2, ID: 495629).
+    print(
+        "Get the team game pitching stats for the " +
+        "2020 McKendree softball team (D2, ID: 495629)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=495629)
+    print(df)
+
+    # Get the team game pitching stats for
+    # the 2019 Dubuque softball team (D3, ID: 472831).
+    print(
+        "Get the team game pitching stats for the " +
+        "2019 Dubuque softball team (D3, ID: 472831)."
+    )
+    df = get_softball_team_game_pitching_stats(team_id=472831)
+    print(df)
+
+    ```
+
+    Returns
+    ----------
+    A pandas `DataFrame` object with a team's pitching game logs
+    in a given season.
+    """
+    sport_id = "WSB"
+    load_from_cache = True
+    stats_df = pd.DataFrame()
+    stats_df_arr = []
+    home_dir = expanduser("~")
+    home_dir = _format_folder_str(home_dir)
+
+    stat_columns = [
+        "season",
+        "sport_id",
+        "game_id",
+        "game_date",
+        "game_date_time",
+        "game_stadium",
+        "team_id",
+        "pitching_IP",
+        "pitching_H",
+        "pitching_R",
+        "pitching_ER",
+        "pitching_BB",
+        "pitching_SO",
+        "pitching_BF",
+        "pitching_2B",
+        "pitching_3B",
+        "pitching_BK",
+        "pitching_HR",
+        "pitching_WP",
+        "pitching_HBP",
+        "pitching_IBB",
+        "pitching_IR",
+        "pitching_IRS",
+        "pitching_SH",
+        "pitching_SF",
+        "pitching_KL",
+        "pitching_TUER",
+        "pitching_PK",
+        "pitching_illegal_pitch",
+    ]
+
+    team_df = load_softball_teams()
+    team_df = team_df[team_df["team_id"] == team_id]
+    season = team_df["season"].iloc[0]
+    del team_df
+
+    if exists(f"{home_dir}/.ncaa_stats_py/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/")
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/pitching/"
+    ):
+        pass
+    else:
+        mkdir(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/pitching/"
+        )
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/pitching/"
+        + f"{team_id}_team_game_pitching_stats.csv"
+    ):
+        stats_df = pd.read_csv(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/pitching/"
+            + f"{team_id}_team_game_pitching_stats.csv"
+        )
+        file_mod_datetime = datetime.fromtimestamp(
+            getmtime(
+                f"{home_dir}/.ncaa_stats_py/softball/"
+                + "team_game_stats/pitching/"
+                + f"{team_id}_team_game_pitching_stats.csv"
+            )
+        )
+        stats_df = stats_df.infer_objects()
+        load_from_cache = True
+    else:
+        file_mod_datetime = datetime.today()
+        load_from_cache = False
+
+    now = datetime.today()
+    age = now - file_mod_datetime
+
+    if (
+        age.days > 1 and
+        season >= now.year and
+        now.month <= 7
+    ):
+        load_from_cache = False
+
+    if load_from_cache is True:
+        return stats_df
+
+    schedule_df = get_softball_team_schedule(team_id)
+    game_ids = schedule_df["game_id"].dropna().unique().tolist()
+    game_ids = [int(g) for g in game_ids]
+
+    for game_id in tqdm(game_ids):
+        try:
+            game_stats = get_softball_game_team_stats(game_id=game_id)
+            team_stats = game_stats[game_stats["team_id"] == team_id].copy()
+            if len(team_stats) > 0:
+                stats_df_arr.append(team_stats)
+        except Exception as e:
+            logging.warning(
+                f"Could not retrieve team stats for game {game_id}. "
+                + f"Full exception `{e}`."
+            )
+
+    if len(stats_df_arr) == 0:
+        logging.warning(
+            f"Could not find any team game pitching stats for team {team_id}."
+        )
+        return pd.DataFrame(columns=stat_columns)
+
+    stats_df = pd.concat(stats_df_arr, ignore_index=True)
+    stats_df["sport_id"] = sport_id
+
+    stats_df = stats_df.reindex(columns=stat_columns)
+
+    stats_df.to_csv(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/pitching/"
+        + f"{team_id}_team_game_pitching_stats.csv",
+        index=False,
+    )
+    return stats_df
+
+
+def get_softball_team_game_fielding_stats(team_id: int) -> pd.DataFrame:
+    """
+    Given a valid team ID, this function retrieves the fielding stats
+    for that team at a game level for the entire season.
+
+    Parameters
+    ----------
+    `team_id` (int, mandatory):
+        Required argument.
+        Specifies the team you want fielding stats from.
+        This is separate from a school ID, which identifies the institution.
+        A team ID should be unique to a school, and a season.
+
+    Usage
+    ----------
+    ```python
+
+    from ncaa_stats_py.softball import (
+        get_softball_team_game_fielding_stats
+    )
+
+    # Get the team game fielding stats for
+    # the 2024 Sacred Heart softball team (D1, ID: 571982).
+    print(
+        "Get the team game fielding stats for the " +
+        "2024 Sacred Heart softball team (D1, ID: 571982)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=571982)
+    print(df)
+
+    # Get the team game fielding stats for
+    # the 2023 Pitt.-Johnstown softball team (D2, ID: 549649).
+    print(
+        "Get the team game fielding stats for the " +
+        "2023 Pitt.-Johnstown softball team (D2, ID: 549649)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=549649)
+    print(df)
+
+    # Get the team game fielding stats for
+    # the 2022 Texas-Dallas softball team (D3, ID: 533069).
+    print(
+        "Get the team game fielding stats for the " +
+        "2022 Texas-Dallas softball team (D3, ID: 533069)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=533069)
+    print(df)
+
+    # Get the team game fielding stats for
+    # the 2021 UTSA softball team (D1, ID: 510536).
+    print(
+        "Get the team game fielding stats for the " +
+        "2021 UTSA softball team (D1, ID: 510536)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=510536)
+    print(df)
+
+    # Get the team game fielding stats for
+    # the 2020 McKendree softball team (D2, ID: 495629).
+    print(
+        "Get the team game fielding stats for the " +
+        "2020 McKendree softball team (D2, ID: 495629)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=495629)
+    print(df)
+
+    # Get the team game fielding stats for
+    # the 2019 Dubuque softball team (D3, ID: 472831).
+    print(
+        "Get the team game fielding stats for the " +
+        "2019 Dubuque softball team (D3, ID: 472831)."
+    )
+    df = get_softball_team_game_fielding_stats(team_id=472831)
+    print(df)
+
+    ```
+
+    Returns
+    ----------
+    A pandas `DataFrame` object with a team's fielding game logs
+    in a given season.
+    """
+    sport_id = "WSB"
+    load_from_cache = True
+    stats_df = pd.DataFrame()
+    stats_df_arr = []
+    home_dir = expanduser("~")
+    home_dir = _format_folder_str(home_dir)
+
+    stat_columns = [
+        "season",
+        "sport_id",
+        "game_id",
+        "game_date",
+        "game_date_time",
+        "game_stadium",
+        "team_id",
+        "fielding_PO",
+        "fielding_A",
+        "fielding_TC",
+        "fielding_E",
+        "fielding_CI",
+        "fielding_PB",
+        "fielding_SBA",
+        "fielding_CSB",
+        "fielding_IDP",
+        "fielding_TP",
+        "fielding_SBA%",
+    ]
+
+    team_df = load_softball_teams()
+    team_df = team_df[team_df["team_id"] == team_id]
+    season = team_df["season"].iloc[0]
+    del team_df
+
+    if exists(f"{home_dir}/.ncaa_stats_py/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/")
+
+    if exists(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/"):
+        pass
+    else:
+        mkdir(f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/")
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/fielding/"
+    ):
+        pass
+    else:
+        mkdir(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/fielding/"
+        )
+
+    if exists(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/fielding/"
+        + f"{team_id}_team_game_fielding_stats.csv"
+    ):
+        stats_df = pd.read_csv(
+            f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/fielding/"
+            + f"{team_id}_team_game_fielding_stats.csv"
+        )
+        file_mod_datetime = datetime.fromtimestamp(
+            getmtime(
+                f"{home_dir}/.ncaa_stats_py/softball/"
+                + "team_game_stats/fielding/"
+                + f"{team_id}_team_game_fielding_stats.csv"
+            )
+        )
+        stats_df = stats_df.infer_objects()
+        load_from_cache = True
+    else:
+        file_mod_datetime = datetime.today()
+        load_from_cache = False
+
+    now = datetime.today()
+    age = now - file_mod_datetime
+
+    if (
+        age.days > 1 and
+        season >= now.year and
+        now.month <= 7
+    ):
+        load_from_cache = False
+
+    if load_from_cache is True:
+        return stats_df
+
+    schedule_df = get_softball_team_schedule(team_id)
+    game_ids = schedule_df["game_id"].dropna().unique().tolist()
+    game_ids = [int(g) for g in game_ids]
+
+    for game_id in tqdm(game_ids):
+        try:
+            game_stats = get_softball_game_team_stats(game_id=game_id)
+            team_stats = game_stats[game_stats["team_id"] == team_id].copy()
+            if len(team_stats) > 0:
+                stats_df_arr.append(team_stats)
+        except Exception as e:
+            logging.warning(
+                f"Could not retrieve team stats for game {game_id}. "
+                + f"Full exception `{e}`."
+            )
+
+    if len(stats_df_arr) == 0:
+        logging.warning(
+            f"Could not find any team game fielding stats for team {team_id}."
+        )
+        return pd.DataFrame(columns=stat_columns)
+
+    stats_df = pd.concat(stats_df_arr, ignore_index=True)
+    stats_df["sport_id"] = sport_id
+
+    if "fielding_SBA%" not in stats_df.columns:
+        stats_df.loc[
+            (stats_df["fielding_SBA"] > 0) | (stats_df["fielding_CSB"] > 0),
+            "fielding_SBA%"
+        ] = round(
+            stats_df["fielding_SBA"] / (
+                stats_df["fielding_SBA"] + stats_df["fielding_CSB"]
+            )
+        )
+
+    stats_df = stats_df.reindex(columns=stat_columns)
+
+    stats_df.to_csv(
+        f"{home_dir}/.ncaa_stats_py/softball/team_game_stats/fielding/"
+        + f"{team_id}_team_game_fielding_stats.csv",
+        index=False,
+    )
+    return stats_df
+
+
 def get_raw_softball_game_pbp(game_id: int):
     """
     Given a valid game ID,
