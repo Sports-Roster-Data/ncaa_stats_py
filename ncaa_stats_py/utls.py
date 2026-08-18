@@ -271,6 +271,11 @@ def _stat_id_dict() -> dict:
             # look for "2024", because the field hockey season
             # typically happens between August and November
             # (except for the 2020 COVID spring season).
+            2025: {
+                "season": 2025,
+                "goalkeepers": 15730,
+                "non_goalkeepers": 15729
+            },
             2024: {
                 "season": 2024,
                 "goalkeepers": 15505,
@@ -766,6 +771,7 @@ def _stat_id_dict() -> dict:
             2011: {"season": 2011},
         },
         "womens_soccer": {
+            2026: {"season": 2026, "goalkeepers": 15988, "non_goalkeepers": 15987, "team": 17200},
             2025: {"season": 2025, "goalkeepers": 15728, "non_goalkeepers": 15727, "team": 16900},
             2024: {"season": 2024, "goalkeepers": 15473, "non_goalkeepers": 15472, "team": 16641},
             2023: {"season": 2023, "goalkeepers": 15148, "non_goalkeepers": 15147, "team": 16462},
@@ -1157,28 +1163,17 @@ def _get_schools() -> pd.DataFrame:
 
 
 def _get_stat_id(sport: str, season: int, stat_type: str) -> int:
-    """ """
-    data = _stat_id_dict()
-    try:
-        t_data = data[sport.lower()][season]
+    """
+    Resolves a stat-category ID for `sport`/`season`/`stat_type`.
 
-        for key, value in t_data.items():
-            if key == stat_type:
-                return value
-    except Exception:
-        logging.warning(
-            "An error occurred when attempting to locate a stat ID. "
-            + "Attempting a slower method of finding your stat ID. "
-            + "If you keep seeing this message, "
-            + "please raise an issue at "
-            + "\n https://github.com/armstjc/ncaa_stats_py/issues \n"
-        )
+    Delegates to `ncaa_stats_py.ids`, which prefers IDs discovered live
+    from stats.ncaa.org's rankings pages over the bundled static seed
+    (formerly this function's only source of truth), so new seasons don't
+    require a code change. Signature and error behavior are unchanged.
+    """
+    from ncaa_stats_py.ids import get_stat_category_id
 
-    # If we can't find the requested stat type, raise this error.
-    raise LookupError(
-        f"Could not locate a stat ID in {sport} for {stat_type} "
-        + f"in the {season} season."
-    )
+    return get_stat_category_id(sport.lower(), season, stat_type)
 
 
 def _get_minute_formatted_time_from_seconds(seconds: int) -> str:
